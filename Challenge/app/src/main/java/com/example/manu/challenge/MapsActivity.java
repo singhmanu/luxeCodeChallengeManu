@@ -18,7 +18,6 @@ public class MapsActivity extends FragmentActivity {
     private double savedLng = -122.419416;
     private float savedZoom = 4f;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,39 +61,28 @@ public class MapsActivity extends FragmentActivity {
             er = true;
         }
         LatLng myLatLng;
-        if (er) {
-            // sets a default location for the coordinates
+
+        if (er == true) {
+            // sets a default location for the coordinates (San Francisco)
             myLatLng = new LatLng(37.774929, -122.419416);
         } else {
             myLatLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         }
 
         // zooms map to designated location
-        zoomMap(myLatLng, 1);
+        zoomMap(myLatLng, (mMap.getMaxZoomLevel() + 2f));
     }
 
     @Override
     protected void onStop(){
         super.onStop();
 
-        // Save last position of map
-       /* SharedPreferences.Editor editor = mySettings.edit();
-        CameraPosition camFinal = mMap.getCameraPosition();
-        editor.putFloat("zoom", camFinal.zoom);
-        editor.putFloat("latitude", (float)mMap.getMyLocation().getLatitude());
-        editor.putFloat("longitude", (float)mMap.getMyLocation().getLongitude());
-        editor.commit();*/
     }
 
     private void zoomMap(LatLng myLatLng, float zoomVal)
     {
         if(mMap == null) {
             return;
-        }
-
-        if(zoomVal == 0)
-        {
-            zoomVal = 6f;
         }
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, zoomVal));
