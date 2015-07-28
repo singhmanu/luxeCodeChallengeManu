@@ -5,4 +5,13 @@
     android:theme="@android:style/Theme.NoTitleBar"
     android:id="@+id/activity_maps"
     tools:context="com.example.manu.challenge.MapsActivity"
-    android:name="com.google.android.gms.maps.SupportMapFragment"/>
+    android:name="com.google.android.gms.maps.SupportMapFragment">
+    <SearchView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/searchAddress"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="#80ffffff"
+        />
+    </fragment>

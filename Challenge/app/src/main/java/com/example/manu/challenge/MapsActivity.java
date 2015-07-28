@@ -1,82 +1,147 @@
 package com.example.manu.challenge;
 
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.view.View;
+import android.widget.SearchView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapsActivity extends FragmentActivity {
 
-    private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-    //SharedPreferences mySettings = getSharedPreferences("MyPrefsFile", 0);
-    private double savedLat = 37.774929;
-    private double savedLng = -122.419416;
-    private float savedZoom = 4f;
+    private GoogleMap mMap; // map
+    private SearchView search; // search view
+    private Marker[] markers;
+    private int markerIndex = 0;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
 
-        // Gets previous latitude and Longitude values saved in the app
-/*        if(mySettings.contains("zoom"))
-        {
-            savedZoom = mySettings.getFloat("zoom", 4);
-            savedLng = (double) mySettings.getFloat("longitude", -122.419416f);
-            savedLat = (double) mySettings.getFloat("latitude", 37.774929f);
-        }*/
-
-        // Settings of Map
+        // Settings of the GoogleMap
         mMap.getUiSettings().setRotateGesturesEnabled(false);
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setRotateGesturesEnabled(false);
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
-        //mMap.getUiSettings().setIndoorLevelPickerEnabled(false);
 
-        // Locates location of user
-        Location myLocation = null;
-        boolean er = false;
+        // Search
+        search = (SearchView) findViewById(R.id.searchAddress);
+        search.bringToFront();
+        search.setQueryHint("SearchView");
 
-        try{
-            // tries to find my location
-            LocationManager myLocManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            if(myLocManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
-            {
-                myLocation = mMap.getMyLocation();
-            } else
-            {
-                er = true;
+        //*** setOnQueryTextFocusChangeListener ***
+        search.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                SearchView search1 = (SearchView) findViewById(R.id.searchAddress);
+                if (hasFocus)
+                {
+                    search1.setBackgroundColor(0x40ffffff);
+                } else {
+                    search1.setBackgroundColor(0x80ffffff);
+                }
+            }
+        });
+
+        //*** setOnQueryTextListener ***
+        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // TODO Auto-generated method stub
+
+
+                return false;
             }
 
-        } catch(Exception e)
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // TODO Auto-generated method stub
+
+                return false;
+            }
+        });
+    }
+
+    @Override
+    protected void onStart ()
+    {
+        // Locates location of the user
+        Location myLocation = null;
+        LatLng myLatLng;
+        boolean er = false;
+
+        try
+        {
+            mMap.setMyLocationEnabled(true);
+            myLocation = mMap.getMyLocation();
+        } catch (Exception e)
         {
             er = true;
         }
-        LatLng myLatLng;
 
         if (er == true) {
-            // sets a default location for the coordinates (San Francisco)
+            // Sets a default location for the coordinates (San Francisco)
             myLatLng = new LatLng(37.774929, -122.419416);
         } else {
             myLatLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         }
 
         // zooms map to designated location
-        zoomMap(myLatLng, (mMap.getMaxZoomLevel() + 2f));
+        zoomMap(myLatLng, (14f));
+    }
+
+    // Adds a Marker
+    private int addMarker(String title, String snippet, LatLng markerLngLat, String color)
+    {
+        float fColor = BitmapDescriptorFactory.HUE_AZURE;
+
+        if (color == "blue")
+        {
+            fColor = BitmapDescriptorFactory.HUE_BLUE;
+        }
+
+        MarkerOptions markerOpt = new MarkerOptions()
+                .position(markerLngLat)
+                .title(title)
+                .snippet(snippet)
+                .draggable(false)
+                .icon(BitmapDescriptorFactory.defaultMarker(fColor));
+
+        markers[markerIndex] = mMap.addMarker(markerOpt);
+
+        markerIndex++;
+        return markerIndex - 1;
+    }
+
+    // Removes a specific marker
+    private void removeMarker(int markerI)
+    {
+        markers[markerI].remove();
+        markers[markerI] = null;
+    }
+
+    private void doMySearch(String query)
+    {
+
     }
 
     @Override
     protected void onStop(){
         super.onStop();
-
     }
 
     private void zoomMap(LatLng myLatLng, float zoomVal)
