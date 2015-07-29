@@ -1,11 +1,17 @@
 package com.example.manu.challenge;
 
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.SearchView;
+import android.widget.Toast;
 
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -14,19 +20,29 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapsActivity extends FragmentActivity {
+public class MapsActivity extends FragmentActivity implements LocationListener, AdapterView.OnItemClickListener {
 
-    private GoogleMap mMap; // map
-    private SearchView search; // search view
-    private Marker[] markers;
+    private GoogleMap mMap;                 // Google Map
+    private SearchView search;              // search view
+    private Marker[] markers;               // Markers for addresses
     private int markerIndex = 0;
+    private ListView suggestions;           // Suggestion List
+    private ArrayAdapter<String> listAdapter;
+    private String mKey = "AIzaSyCHHvWg4m_K00vbTV3gJJiJlwNGP4T4Nnc";
+    private boolean findLocation = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        String ref = "adsf";
+        String url = "https://maps.googleapis.com/maps/api/place/details/json?reference="+ref+"sensor=false&"+mKey;
+
+        // GoogleMap setup
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         setUpMapIfNeeded();
+
+        //suggestions = (ListView)findViewById(R.id.suggestList);
 
         // Settings of the GoogleMap
         mMap.getUiSettings().setRotateGesturesEnabled(false);
@@ -39,17 +55,17 @@ public class MapsActivity extends FragmentActivity {
         // Search
         search = (SearchView) findViewById(R.id.searchAddress);
         search.bringToFront();
-        search.setQueryHint("SearchView");
+        search.setQueryHint("Search for Places…");
 
-        //*** setOnQueryTextFocusChangeListener ***
+        // When the search view is selected and unselected
         search.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
 
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 SearchView search1 = (SearchView) findViewById(R.id.searchAddress);
-                if (hasFocus)
+                if (hasFocus == true)
                 {
-                    search1.setBackgroundColor(0x40ffffff);
+                    search1.setBackgroundColor(0xe0ffffff);
                 } else {
                     search1.setBackgroundColor(0x80ffffff);
                 }
@@ -61,47 +77,59 @@ public class MapsActivity extends FragmentActivity {
 
             @Override
             public boolean onQueryTextSubmit(String query) {
-                // TODO Auto-generated method stub
-
 
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // TODO Auto-generated method stub
 
                 return false;
             }
         });
+
+        // default to san francisco
+        LatLng sFll = new LatLng(37.774929, -122.419416);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sFll, 14));
+
+        //addSuggestion("location1");
+        //addSuggestion("location2");
     }
 
+    // Locates location of the user
     @Override
-    protected void onStart ()
+    public void onLocationChanged(Location location) {
+        if (findLocation == false)
+        {
+            return;
+        }
+        double latitude = location.getLatitude();
+        double longitude = location.getLongitude();
+        LatLng latLng = new LatLng(latitude, longitude);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 14));
+        showlog("longlat found");
+        findLocation = false;
+    }
+
+    private void showlog(String str)
     {
-        // Locates location of the user
-        Location myLocation = null;
-        LatLng myLatLng;
-        boolean er = false;
+        Context context = getApplicationContext();
+        CharSequence text = "";
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+    }
 
-        try
-        {
-            mMap.setMyLocationEnabled(true);
-            myLocation = mMap.getMyLocation();
-        } catch (Exception e)
-        {
-            er = true;
-        }
+    private void addSuggestion(String strSuggest)
+    {
+        listAdapter.add(strSuggest);
+        suggestions.setAdapter(listAdapter);
+    }
 
-        if (er == true) {
-            // Sets a default location for the coordinates (San Francisco)
-            myLatLng = new LatLng(37.774929, -122.419416);
-        } else {
-            myLatLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-        }
-
-        // zooms map to designated location
-        zoomMap(myLatLng, (14f));
+    private void removeSuggestions()
+    {
+        listAdapter.clear();
+        suggestions.setAdapter(listAdapter);
     }
 
     // Adds a Marker
@@ -166,5 +194,10 @@ public class MapsActivity extends FragmentActivity {
             mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.activity_maps))
                     .getMap();
         }
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
     }
 }
